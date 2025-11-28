@@ -23,7 +23,7 @@ const MOCK_APPOINTMENTS: Appointment[] = [
   { 
     id: 'a1', 
     patientId: 'p1', 
-    patientName: 'John Doe',
+    patientName: 'johnny',
     doctorId: 'd1', 
     date: new Date().toISOString().split('T')[0], 
     time: '09:00', 
