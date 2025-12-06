@@ -8,7 +8,8 @@ import {
   AppointmentStatus, 
   Prescription, 
   PharmacyOrder, 
-  OrderStatus 
+  OrderStatus,
+  EyePrescriptionDetails
 } from '../types';
 
 const ClinicContext = createContext<ClinicContextType | undefined>(undefined);

@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { Prescription, PharmacyOrder, Medicine, Appointment } from '../types';
+import { Prescription, PharmacyOrder, Medicine, Appointment, EyeMeasurement, EyePrescriptionDetails } from '../types';
 
 export const generateConsultationSlipPDF = (appointment: Appointment) => {
   const doc = new jsPDF();
@@ -158,6 +158,137 @@ export const generatePrescriptionPDF = (prescription: Prescription) => {
 
   doc.save(`Prescription_${prescription.patientName.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
 };
+
+export const generateEyePrescriptionPDF = (prescription: Prescription) => {
+  const eye = prescription.eyePrescription;
+  if (!eye) {
+    console.error("No eye prescription details found for PDF generation.");
+    return;
+  }
+
+  const doc = new jsPDF();
+  let y = 20;
+  const col1X = 10;
+  const col2X = 55; // SPH
+  const col3X = 90; // CYL
+  const col4X = 125; // Axis
+  const col5X = 160; // Vision
+  const tableWidth = 180;
+  const rowHeight = 15;
+  const cellPadding = 2;
+
+  // Header
+  doc.setFontSize(20);
+  doc.setTextColor(14, 165, 233);
+  doc.text("VisionCare Centre", 105, y, { align: "center" });
+  y += 7;
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text("123 Eye Avenue, Medical District, NY 10001", 105, y, { align: "center" });
+  doc.text("Phone: (555) 123-4567 | Email: contact@visioncare.com", 105, y + 4, { align: "center" });
+  y += 15;
+
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(180);
+  doc.line(col1X, y, col1X + tableWidth, y);
+  y += 5;
+
+  doc.setFontSize(10);
+  doc.setTextColor(0);
+  doc.text(`Date: ${new Date(prescription.date).toLocaleDateString()}`, col5X, y);
+  doc.text(`Name: ${prescription.patientName}`, col1X, y);
+  y += 10;
+  doc.text("M / F", col5X, y); // Placeholder for gender if available later
+
+  // Prescription Table Headers
+  y += 10;
+  doc.setFillColor(240, 249, 255);
+  doc.rect(col1X, y - 5, tableWidth, 10, 'F'); // Background for headers
+  doc.setDrawColor(0);
+  doc.line(col1X, y - 5, col1X + tableWidth, y - 5); // Top border
+  doc.line(col1X, y + 5, col1X + tableWidth, y + 5); // Bottom border
+  doc.setFont("helvetica", "bold");
+  doc.text("SPH", col2X, y);
+  doc.text("CYL", col3X, y);
+  doc.text("Axis", col4X, y);
+  doc.text("Vision", col5X, y);
+  doc.setFont("helvetica", "normal");
+  y += 5;
+
+  // RE - Right Eye
+  y += rowHeight / 2;
+  doc.rect(col1X, y - rowHeight, tableWidth, rowHeight, 'S'); // Outer box for RE
+  doc.line(col2X - 5, y - rowHeight, col2X - 5, y); // Vertical line before SPH
+  doc.line(col3X - 5, y - rowHeight, col3X - 5, y); // Vertical line before CYL
+  doc.line(col4X - 5, y - rowHeight, col4X - 5, y); // Vertical line before Axis
+  doc.line(col5X - 5, y - rowHeight, col5X - 5, y); // Vertical line before Vision
+
+  doc.setFontSize(10);
+  doc.text("RE", col1X + cellPadding + 5, y - rowHeight / 2 + 2); // RE label
+  
+  doc.setFontSize(8);
+  doc.text(eye.right_eye.notes || 'CLEAR', col1X + cellPadding + 2, y - rowHeight + 5);
+  doc.text(eye.right_eye.sph || '', col2X, y - rowHeight / 2 + 2);
+  doc.text(eye.right_eye.cyl || '', col3X, y - rowHeight / 2 + 2);
+  doc.text(eye.right_eye.axis || '', col4X, y - rowHeight / 2 + 2);
+  doc.text(eye.right_eye.vision || '', col5X, y - rowHeight / 2 + 2);
+  y += rowHeight;
+
+  // LE - Left Eye
+  y += rowHeight / 2;
+  doc.rect(col1X, y - rowHeight, tableWidth, rowHeight, 'S'); // Outer box for LE
+  doc.line(col2X - 5, y - rowHeight, col2X - 5, y); // Vertical line before SPH
+  doc.line(col3X - 5, y - rowHeight, col3X - 5, y); // Vertical line before CYL
+  doc.line(col4X - 5, y - rowHeight, col4X - 5, y); // Vertical line before Axis
+  doc.line(col5X - 5, y - rowHeight, col5X - 5, y); // Vertical line before Vision
+
+  doc.setFontSize(10);
+  doc.text("LE", col1X + cellPadding + 5, y - rowHeight / 2 + 2); // LE label
+  
+  doc.setFontSize(8);
+  doc.text(eye.left_eye.notes || 'CLEAR', col1X + cellPadding + 2, y - rowHeight + 5);
+  doc.text(eye.left_eye.sph || '', col2X, y - rowHeight / 2 + 2);
+  doc.text(eye.left_eye.cyl || '', col3X, y - rowHeight / 2 + 2);
+  doc.text(eye.left_eye.axis || '', col4X, y - rowHeight / 2 + 2);
+  doc.text(eye.left_eye.vision || '', col5X, y - rowHeight / 2 + 2);
+  y += rowHeight;
+
+  // Addition section
+  y += 10;
+  doc.setFontSize(10);
+  doc.text("ADDITION", col1X, y);
+  doc.text("BE", col2X - 5, y);
+  doc.text(eye.addition?.both_eyes || '+', col2X + 10, y);
+  doc.text("RE", col2X - 5, y + 5);
+  doc.text(eye.addition?.right_eye || '+', col2X + 10, y + 5);
+  doc.text("LE", col2X - 5, y + 10);
+  doc.text(eye.addition?.left_eye || '+', col2X + 10, y + 10);
+  
+  doc.text("CONSTANT USE", col1X, y + 20);
+  doc.text("((OU))", col5X, y + 10); // Placeholder, assuming OU means Both Eyes
+  y += 30;
+
+  // Next Visit
+  doc.rect(col1X, y, tableWidth / 2, 7); // Box for next visit
+  doc.text(`Next Visit : ${eye.next_visit || ''}`, col1X + 2, y + 5);
+  y += 10;
+
+  // Advice / Doctor Notes
+  doc.setFontSize(10);
+  doc.text(eye.advice || '', col1X, y);
+  y += 5;
+  
+  doc.text(`IPD = ${eye.ipd || ''} mm`, col5X, y);
+  y += 50; // Space for various checkboxes/notes from the image, simplified here
+  
+  // Signature
+  doc.line(col5X - 20, y, col5X + 30, y);
+  doc.setFontSize(10);
+  doc.text("Signature", col5X, y + 5);
+
+  doc.save(`EyePrescription_${prescription.patientName.replace(/\s+/g, '_')}.pdf`);
+};
+
 
 export const generateBillPDF = (order: PharmacyOrder, medicines: Medicine[]) => {
     const doc = new jsPDF();

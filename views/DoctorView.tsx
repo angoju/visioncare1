@@ -1,19 +1,29 @@
 import React, { useState } from 'react';
 import { useClinic } from '../context/ClinicContext';
-import { generatePrescriptionPDF } from '../services/pdfService';
-import { Appointment, Medicine } from '../types';
-import { Clock, CheckCircle, FileText, Plus, Trash2, Printer, History } from 'lucide-react';
+import { generatePrescriptionPDF, generateEyePrescriptionPDF } from '../services/pdfService';
+import { Appointment, Medicine, EyePrescriptionDetails, EyeMeasurement, EyeAddition } from '../types';
+import { Clock, CheckCircle, FileText, Plus, Trash2, Printer, History, Eye } from 'lucide-react';
 
 export const DoctorView = () => {
   const { appointments, prescriptions, createPrescription, currentUser } = useClinic();
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
   const [activeTab, setActiveTab] = useState<'queue' | 'history'>('queue');
   
-  // Prescription Form State
+  // General Prescription Form State
   const [diagnosis, setDiagnosis] = useState('');
   const [instructions, setInstructions] = useState('');
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [currentMed, setCurrentMed] = useState<Medicine>({ name: '', dosage: '', frequency: '', duration: '' });
+
+  // Eye Prescription Form State
+  const [eyePrescription, setEyePrescription] = useState<EyePrescriptionDetails>({
+    right_eye: { sph: '', cyl: '', axis: '', vision: '', notes: 'CLEAR' },
+    left_eye: { sph: '', cyl: '', axis: '', vision: '', notes: 'CLEAR' },
+    addition: { both_eyes: '', right_eye: '', left_eye: '' },
+    advice: '',
+    next_visit: '',
+    ipd: '',
+  });
 
   const scheduledAppointments = appointments.filter(a => a.status === 'scheduled');
 
@@ -40,6 +50,7 @@ export const DoctorView = () => {
       diagnosis,
       medicines,
       instructions,
+      eyePrescription: eyePrescription.right_eye.sph || eyePrescription.left_eye.sph ? eyePrescription : undefined, // Only save if eye data exists
     });
 
     // Reset and close
@@ -47,7 +58,43 @@ export const DoctorView = () => {
     setDiagnosis('');
     setInstructions('');
     setMedicines([]);
+    setEyePrescription({ // Reset eye prescription form
+      right_eye: { sph: '', cyl: '', axis: '', vision: '', notes: 'CLEAR' },
+      left_eye: { sph: '', cyl: '', axis: '', vision: '', notes: 'CLEAR' },
+      addition: { both_eyes: '', right_eye: '', left_eye: '' },
+      advice: '',
+      next_visit: '',
+      ipd: '',
+    });
   };
+
+  const updateEyeMeasurement = (eye: 'right_eye' | 'left_eye', field: keyof EyeMeasurement, value: string) => {
+    setEyePrescription(prev => ({
+      ...prev,
+      [eye]: {
+        ...prev[eye],
+        [field]: value,
+      },
+    }));
+  };
+
+  const updateEyeAddition = (field: keyof EyeAddition, value: string) => {
+    setEyePrescription(prev => ({
+      ...prev,
+      addition: {
+        ...prev.addition,
+        [field]: value,
+      },
+    }));
+  };
+
+  const updateEyeGeneral = (field: keyof Omit<EyePrescriptionDetails, 'right_eye' | 'left_eye' | 'addition'>, value: string) => {
+    setEyePrescription(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
 
   return (
     <div className="space-y-6">
@@ -112,11 +159,11 @@ export const DoctorView = () => {
                   </div>
                 </div>
 
-                <div className="space-y-6 flex-1">
+                <div className="space-y-6 flex-1 overflow-y-auto pr-2 -mr-2"> {/* Added overflow for long forms */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Diagnosis / Impression</label>
                     <textarea 
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white text-gray-900"
                       rows={2}
                       value={diagnosis}
                       onChange={(e) => setDiagnosis(e.target.value)}
@@ -124,23 +171,104 @@ export const DoctorView = () => {
                     />
                   </div>
 
+                  {/* Eye Prescription Section */}
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2"><Eye size={20} /> Eye Prescription</h4>
+                    
+                    {/* Vision Table Headers */}
+                    <div className="grid grid-cols-6 text-xs font-semibold text-gray-600 mb-2 px-2">
+                      <span className="col-span-2">Eye</span>
+                      <span>SPH</span>
+                      <span>CYL</span>
+                      <span>Axis</span>
+                      <span>Vision</span>
+                    </div>
+                    
+                    {/* Right Eye (RE) */}
+                    <div className="grid grid-cols-6 gap-2 mb-2">
+                      <div className="col-span-2 flex items-center gap-2">
+                        <span className="font-medium text-gray-900">RE</span>
+                        <input type="text" placeholder="Notes (CLEAR)" className="flex-1 p-1 border rounded text-xs bg-white text-gray-900"
+                          value={eyePrescription.right_eye.notes} onChange={e => updateEyeMeasurement('right_eye', 'notes', e.target.value)} />
+                      </div>
+                      <input type="text" placeholder="SPH" className="p-1 border rounded text-xs bg-white text-gray-900"
+                        value={eyePrescription.right_eye.sph} onChange={e => updateEyeMeasurement('right_eye', 'sph', e.target.value)} />
+                      <input type="text" placeholder="CYL" className="p-1 border rounded text-xs bg-white text-gray-900"
+                        value={eyePrescription.right_eye.cyl} onChange={e => updateEyeMeasurement('right_eye', 'cyl', e.target.value)} />
+                      <input type="text" placeholder="Axis" className="p-1 border rounded text-xs bg-white text-gray-900"
+                        value={eyePrescription.right_eye.axis} onChange={e => updateEyeMeasurement('right_eye', 'axis', e.target.value)} />
+                      <input type="text" placeholder="Vision (6/6)" className="p-1 border rounded text-xs bg-white text-gray-900"
+                        value={eyePrescription.right_eye.vision} onChange={e => updateEyeMeasurement('right_eye', 'vision', e.target.value)} />
+                    </div>
+
+                    {/* Left Eye (LE) */}
+                    <div className="grid grid-cols-6 gap-2 mb-4">
+                      <div className="col-span-2 flex items-center gap-2">
+                        <span className="font-medium text-gray-900">LE</span>
+                        <input type="text" placeholder="Notes (CLEAR)" className="flex-1 p-1 border rounded text-xs bg-white text-gray-900"
+                          value={eyePrescription.left_eye.notes} onChange={e => updateEyeMeasurement('left_eye', 'notes', e.target.value)} />
+                      </div>
+                      <input type="text" placeholder="SPH" className="p-1 border rounded text-xs bg-white text-gray-900"
+                        value={eyePrescription.left_eye.sph} onChange={e => updateEyeMeasurement('left_eye', 'sph', e.target.value)} />
+                      <input type="text" placeholder="CYL" className="p-1 border rounded text-xs bg-white text-gray-900"
+                        value={eyePrescription.left_eye.cyl} onChange={e => updateEyeMeasurement('left_eye', 'cyl', e.target.value)} />
+                      <input type="text" placeholder="Axis" className="p-1 border rounded text-xs bg-white text-gray-900"
+                        value={eyePrescription.left_eye.axis} onChange={e => updateEyeMeasurement('left_eye', 'axis', e.target.value)} />
+                      <input type="text" placeholder="Vision (6/6)" className="p-1 border rounded text-xs bg-white text-gray-900"
+                        value={eyePrescription.left_eye.vision} onChange={e => updateEyeMeasurement('left_eye', 'vision', e.target.value)} />
+                    </div>
+
+                    {/* Addition */}
+                    <div className="grid grid-cols-4 gap-2 mb-4">
+                        <label className="col-span-1 text-sm font-medium text-gray-700 flex items-center">ADDITION</label>
+                        <input type="text" placeholder="BE (Both Eyes)" className="p-2 border rounded text-sm bg-white text-gray-900"
+                            value={eyePrescription.addition?.both_eyes} onChange={e => updateEyeAddition('both_eyes', e.target.value)} />
+                        <input type="text" placeholder="RE (Right Eye)" className="p-2 border rounded text-sm bg-white text-gray-900"
+                            value={eyePrescription.addition?.right_eye} onChange={e => updateEyeAddition('right_eye', e.target.value)} />
+                        <input type="text" placeholder="LE (Left Eye)" className="p-2 border rounded text-sm bg-white text-gray-900"
+                            value={eyePrescription.addition?.left_eye} onChange={e => updateEyeAddition('left_eye', e.target.value)} />
+                    </div>
+
+                    {/* Next Visit & IPD */}
+                    <div className="flex gap-4 mb-4">
+                        <input type="text" placeholder="Next Visit (e.g., 1 Month)" className="flex-1 p-2 border rounded text-sm bg-white text-gray-900"
+                            value={eyePrescription.next_visit} onChange={e => updateEyeGeneral('next_visit', e.target.value)} />
+                        <input type="text" placeholder="IPD (e.g., 60mm)" className="flex-1 p-2 border rounded text-sm bg-white text-gray-900"
+                            value={eyePrescription.ipd} onChange={e => updateEyeGeneral('ipd', e.target.value)} />
+                    </div>
+
+                    {/* Eye Specific Advice */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Eye Specific Advice / Notes</label>
+                      <textarea 
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white text-gray-900"
+                        rows={2}
+                        value={eyePrescription.advice}
+                        onChange={(e) => updateEyeGeneral('advice', e.target.value)}
+                        placeholder="e.g. Constant use, Cataract Surgery..."
+                      />
+                    </div>
+                  </div>
+                  {/* End Eye Prescription Section */}
+
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Rx: Medicines</label>
                     <div className="grid grid-cols-12 gap-2 mb-3">
                       <input 
-                        placeholder="Medicine Name" className="col-span-4 p-2 border rounded text-sm"
+                        placeholder="Medicine Name" className="col-span-4 p-2 border rounded text-sm bg-white text-gray-900"
                         value={currentMed.name} onChange={e => setCurrentMed({...currentMed, name: e.target.value})}
                       />
                       <input 
-                        placeholder="Dosage" className="col-span-3 p-2 border rounded text-sm"
+                        placeholder="Dosage" className="col-span-3 p-2 border rounded text-sm bg-white text-gray-900"
                         value={currentMed.dosage} onChange={e => setCurrentMed({...currentMed, dosage: e.target.value})}
                       />
                       <input 
-                        placeholder="Freq" className="col-span-2 p-2 border rounded text-sm"
+                        placeholder="Freq" className="col-span-2 p-2 border rounded text-sm bg-white text-gray-900"
                         value={currentMed.frequency} onChange={e => setCurrentMed({...currentMed, frequency: e.target.value})}
                       />
                       <input 
-                        placeholder="Dur" className="col-span-2 p-2 border rounded text-sm"
+                        placeholder="Dur" className="col-span-2 p-2 border rounded text-sm bg-white text-gray-900"
                         value={currentMed.duration} onChange={e => setCurrentMed({...currentMed, duration: e.target.value})}
                       />
                       <button 
@@ -157,7 +285,7 @@ export const DoctorView = () => {
                       {medicines.map((med, idx) => (
                         <div key={idx} className="flex justify-between items-center bg-white p-2 rounded shadow-sm text-sm">
                           <div className="grid grid-cols-4 gap-2 flex-1">
-                            <span className="font-medium">{med.name}</span>
+                            <span className="font-medium text-gray-900">{med.name}</span>
                             <span className="text-gray-600">{med.dosage}</span>
                             <span className="text-gray-600">{med.frequency}</span>
                             <span className="text-gray-600">{med.duration}</span>
@@ -171,9 +299,9 @@ export const DoctorView = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Additional Instructions</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Additional Instructions (General)</label>
                     <textarea 
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white text-gray-900"
                       rows={2}
                       value={instructions}
                       onChange={(e) => setInstructions(e.target.value)}
@@ -186,9 +314,9 @@ export const DoctorView = () => {
                   <button onClick={() => setSelectedAppt(null)} className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">Cancel</button>
                   <button 
                     onClick={handleSavePrescription}
-                    disabled={!diagnosis || medicines.length === 0}
+                    disabled={!diagnosis && medicines.length === 0 && !eyePrescription.right_eye.sph && !eyePrescription.left_eye.sph} // Disable if nothing is filled
                     className={`px-6 py-2 rounded-lg text-white font-medium flex items-center gap-2
-                      ${(!diagnosis || medicines.length === 0) ? 'bg-gray-400 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700'}`}
+                      ${(!diagnosis && medicines.length === 0 && !eyePrescription.right_eye.sph && !eyePrescription.left_eye.sph) ? 'bg-gray-400 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700'}`}
                   >
                     <CheckCircle size={18} /> Complete & Send to Pharmacy
                   </button>
@@ -222,12 +350,24 @@ export const DoctorView = () => {
                     <td className="px-6 py-4 text-gray-600 text-sm">{pres.diagnosis}</td>
                     <td className="px-6 py-4 text-gray-600 text-sm">{pres.medicines.length} items</td>
                     <td className="px-6 py-4">
-                        <button 
-                            onClick={() => generatePrescriptionPDF(pres)}
-                            className="text-brand-600 hover:text-brand-800 text-sm font-medium flex items-center gap-1"
-                        >
-                            <Printer size={14} /> PDF
-                        </button>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => generatePrescriptionPDF(pres)}
+                                className="text-brand-600 hover:text-brand-800 text-sm font-medium flex items-center gap-1"
+                                title="Print General Prescription"
+                            >
+                                <Printer size={14} /> Med
+                            </button>
+                            {pres.eyePrescription && (
+                                <button
+                                    onClick={() => generateEyePrescriptionPDF(pres)}
+                                    className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center gap-1"
+                                    title="Print Eye Prescription"
+                                >
+                                    <Eye size={14} /> Eye
+                                </button>
+                            )}
+                        </div>
                     </td>
                 </tr>
               ))}
@@ -249,4 +389,4 @@ const Stethoscope = ({size, className}: {size: number, className?: string}) => (
         <path d="M8 15v6a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-6" />
         <circle cx="12" cy="12" r="2" />
     </svg>
-)
+);

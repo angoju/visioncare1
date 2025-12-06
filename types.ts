@@ -38,6 +38,31 @@ export interface Medicine {
   duration: string; // e.g., "5 days"
 }
 
+export interface EyeMeasurement {
+  sph: string;
+  cyl: string;
+  axis: string;
+  vision: string;
+  notes?: string;
+}
+
+export interface EyeAddition {
+  both_eyes?: string;
+  right_eye?: string;
+  left_eye?: string;
+}
+
+export interface EyePrescriptionDetails {
+  patient_name?: string; // Can be derived from patientName in main Prescription
+  date?: string; // Can be derived from date in main Prescription
+  right_eye: EyeMeasurement;
+  left_eye: EyeMeasurement;
+  addition?: EyeAddition;
+  advice?: string;
+  next_visit?: string; // e.g., "1 Month", "3 Months"
+  ipd?: string; // Pupillary Distance
+}
+
 export interface Prescription {
   id: string;
   appointmentId: string;
@@ -49,6 +74,7 @@ export interface Prescription {
   medicines: Medicine[];
   instructions: string;
   date: string; // ISO string
+  eyePrescription?: EyePrescriptionDetails; // New optional field for eye exam details
 }
 
 export type OrderStatus = 'pending' | 'processing' | 'fulfilled';

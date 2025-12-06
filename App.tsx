@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { ClinicProvider, useClinic } from './context/ClinicContext';
 import { Layout } from './components/Layout';
 import { LoginView } from './views/LoginView';
@@ -7,6 +7,9 @@ import { DoctorView } from './views/DoctorView';
 import { PharmacyView } from './views/PharmacyView';
 import { AdminView } from './views/AdminView';
 
+// FIX: Remove React.FC as it no longer implicitly adds 'children' in modern React (v18+)
+// and can lead to type issues when `children` is not explicitly defined in the props interface.
+// Explicitly define AppContent to take no props.
 const AppContent = () => {
   const { currentUser } = useClinic();
   const [currentView, setCurrentView] = useState('dashboard');

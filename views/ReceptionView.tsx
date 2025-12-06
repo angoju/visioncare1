@@ -125,7 +125,7 @@ export const ReceptionView = () => {
               placeholder="Search..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none w-full sm:w-64"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none w-full sm:w-64 bg-white text-gray-900"
             />
           </div>
         </div>
@@ -240,27 +240,27 @@ export const ReceptionView = () => {
             <form onSubmit={handleAddPatient} className="space-y-4">
               <input 
                 required placeholder="Full Name" 
-                className="w-full p-2 border rounded" 
+                className="w-full p-2 border rounded bg-white text-gray-900" 
                 value={newPatient.name} 
                 onChange={e => setNewPatient({...newPatient, name: e.target.value})} 
               />
               <div className="flex gap-4">
                  <input 
                   required type="number" placeholder="Age" 
-                  className="w-1/3 p-2 border rounded" 
+                  className="w-1/3 p-2 border rounded bg-white text-gray-900" 
                   value={newPatient.age} 
                   onChange={e => setNewPatient({...newPatient, age: e.target.value})} 
                 />
                  <input 
                   required placeholder="Phone" 
-                  className="w-2/3 p-2 border rounded" 
+                  className="w-2/3 p-2 border rounded bg-white text-gray-900" 
                   value={newPatient.phone} 
                   onChange={e => setNewPatient({...newPatient, phone: e.target.value})} 
                 />
               </div>
               <input 
                 required placeholder="Address" 
-                className="w-full p-2 border rounded" 
+                className="w-full p-2 border rounded bg-white text-gray-900" 
                 value={newPatient.address} 
                 onChange={e => setNewPatient({...newPatient, address: e.target.value})} 
               />
@@ -280,7 +280,7 @@ export const ReceptionView = () => {
             <form onSubmit={handleBookAppointment} className="space-y-4">
               <select 
                 required 
-                className="w-full p-2 border rounded bg-white"
+                className="w-full p-2 border rounded bg-white text-gray-900"
                 value={bookingData.patientId}
                 onChange={e => setBookingData({...bookingData, patientId: e.target.value})}
               >
@@ -291,13 +291,13 @@ export const ReceptionView = () => {
               <div className="flex gap-4">
                 <input 
                   required type="date" 
-                  className="w-1/2 p-2 border rounded"
+                  className="w-1/2 p-2 border rounded bg-white text-gray-900"
                   value={bookingData.date}
                   onChange={e => setBookingData({...bookingData, date: e.target.value})}
                 />
                 <input 
                   required type="time" 
-                  className="w-1/2 p-2 border rounded"
+                  className="w-1/2 p-2 border rounded bg-white text-gray-900"
                   value={bookingData.time}
                   onChange={e => setBookingData({...bookingData, time: e.target.value})}
                 />
@@ -310,14 +310,14 @@ export const ReceptionView = () => {
                         <span className="absolute left-2 top-2 text-gray-500">$</span>
                         <input 
                             type="number" 
-                            className="w-full pl-6 p-2 border rounded"
+                            className="w-full pl-6 p-2 border rounded bg-white text-gray-900"
                             placeholder="Amount"
                             value={bookingData.consultationFee}
                             onChange={e => setBookingData({...bookingData, consultationFee: e.target.value})}
                         />
                     </div>
                     <select 
-                        className="flex-1 p-2 border rounded bg-white"
+                        className="flex-1 p-2 border rounded bg-white text-gray-900"
                         value={bookingData.paymentStatus}
                         onChange={e => setBookingData({...bookingData, paymentStatus: e.target.value as 'pending' | 'paid'})}
                     >
@@ -329,7 +329,7 @@ export const ReceptionView = () => {
 
               <textarea 
                 required placeholder="Reason for visit / Symptoms" 
-                className="w-full p-2 border rounded h-24"
+                className="w-full p-2 border rounded h-24 bg-white text-gray-900"
                 value={bookingData.description}
                 onChange={e => setBookingData({...bookingData, description: e.target.value})}
               />

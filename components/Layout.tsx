@@ -18,7 +18,11 @@ interface LayoutProps {
   onNavigate: (view: string) => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, activeView, onNavigate }) => {
+// FIX: Remove React.FC and explicitly type the props directly.
+// In modern React (v18+), React.FC no longer implicitly adds 'children'.
+// Since LayoutProps already defines 'children', using React.FC<LayoutProps> can lead to
+// redundant or conflicting 'children' type definitions.
+export const Layout = ({ children, activeView, onNavigate }: LayoutProps) => {
   const { currentUser, logout } = useClinic();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
