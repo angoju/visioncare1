@@ -3,6 +3,7 @@ import { useClinic } from '../context/ClinicContext';
 import { Plus, Search, Calendar, User, Clock, MapPin, Phone, Printer, CheckCircle, XCircle } from 'lucide-react';
 import { Patient, Appointment } from '../types';
 import { generateConsultationSlipPDF } from '../services/pdfService';
+import { RichTextEditor } from '../components/RichTextEditor';
 
 export const ReceptionView = () => {
   const { patients, appointments, addPatient, bookAppointment, updateAppointmentStatus } = useClinic();
@@ -327,11 +328,11 @@ export const ReceptionView = () => {
                  </div>
               </div>
 
-              <textarea 
-                required placeholder="Reason for visit / Symptoms" 
-                className="w-full p-2 border rounded h-24 bg-white text-gray-900"
+              <RichTextEditor
+                placeholder="Reason for visit / Symptoms"
                 value={bookingData.description}
-                onChange={e => setBookingData({...bookingData, description: e.target.value})}
+                onChange={(value) => setBookingData({...bookingData, description: value})}
+                rows={3}
               />
 
               <div className="flex justify-end gap-3 mt-6">

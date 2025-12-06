@@ -1,5 +1,11 @@
 export type UserRole = 'receptionist' | 'doctor' | 'pharmacist' | 'admin';
 
+declare global {
+  interface Window {
+    Quill: any;
+  }
+}
+
 export interface User {
   id: string;
   name: string;

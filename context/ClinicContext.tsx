@@ -35,7 +35,7 @@ const MOCK_APPOINTMENTS: Appointment[] = [
   },
 ];
 
-export const ClinicProvider = ({ children }: { children: ReactNode }) => {
+export const ClinicProvider = ({ children }: { children?: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [patients, setPatients] = useState<Patient[]>(MOCK_PATIENTS);
   const [appointments, setAppointments] = useState<Appointment[]>(MOCK_APPOINTMENTS);

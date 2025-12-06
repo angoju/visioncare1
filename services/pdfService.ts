@@ -1,6 +1,18 @@
 import { jsPDF } from 'jspdf';
 import { Prescription, PharmacyOrder, Medicine, Appointment, EyeMeasurement, EyePrescriptionDetails } from '../types';
 
+// Helper to remove HTML tags from Rich Text Editor output
+const stripHtml = (html: string | undefined) => {
+  if (!html) return '';
+  // Replace paragraph closes and breaks with newlines to preserve some formatting
+  let text = html.replace(/<\/p>/g, '\n').replace(/<br\s*\/?>/g, '\n');
+  // Strip all other tags
+  text = text.replace(/<[^>]+>/g, '');
+  // Decode common entities
+  text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  return text.trim();
+};
+
 export const generateConsultationSlipPDF = (appointment: Appointment) => {
   const doc = new jsPDF();
   const lineHeight = 10;
@@ -45,8 +57,11 @@ export const generateConsultationSlipPDF = (appointment: Appointment) => {
   doc.text("Presenting Complaint / Reason for Visit", 12, y);
   doc.setFont("helvetica", "normal");
   y += lineHeight;
-  doc.text(appointment.description, 12, y);
-  y += lineHeight * 2;
+  
+  const cleanDescription = stripHtml(appointment.description);
+  const splitDescription = doc.splitTextToSize(cleanDescription, 180);
+  doc.text(splitDescription, 12, y);
+  y += (splitDescription.length * 7) + 20;
 
   // Payment Receipt Section
   doc.setDrawColor(150);
@@ -111,8 +126,11 @@ export const generatePrescriptionPDF = (prescription: Prescription) => {
   doc.text(`Patient Name: ${prescription.patientName}`, 10, y);
   doc.text(`Date: ${new Date(prescription.date).toLocaleDateString()}`, 140, y);
   y += lineHeight;
-  doc.text(`Diagnosis: ${prescription.diagnosis}`, 10, y);
-  y += 15;
+  
+  const cleanDiagnosis = stripHtml(prescription.diagnosis);
+  const splitDiagnosis = doc.splitTextToSize(`Diagnosis: ${cleanDiagnosis}`, 180);
+  doc.text(splitDiagnosis, 10, y);
+  y += (splitDiagnosis.length * 7) + 10;
 
   // Medicines Table Header
   doc.setFillColor(240, 249, 255);
@@ -142,7 +160,8 @@ export const generatePrescriptionPDF = (prescription: Prescription) => {
     doc.text("Instructions:", 10, y);
     doc.setFont("helvetica", "normal");
     y += 7;
-    const splitInstructions = doc.splitTextToSize(prescription.instructions, 180);
+    const cleanInstructions = stripHtml(prescription.instructions);
+    const splitInstructions = doc.splitTextToSize(cleanInstructions, 180);
     doc.text(splitInstructions, 10, y);
     y += (splitInstructions.length * 7) + 20;
   } else {
@@ -275,11 +294,13 @@ export const generateEyePrescriptionPDF = (prescription: Prescription) => {
 
   // Advice / Doctor Notes
   doc.setFontSize(10);
-  doc.text(eye.advice || '', col1X, y);
-  y += 5;
+  const cleanAdvice = stripHtml(eye.advice);
+  const splitAdvice = doc.splitTextToSize(cleanAdvice || '', 180);
+  doc.text(splitAdvice, col1X, y);
+  y += (splitAdvice.length * 5) + 5;
   
   doc.text(`IPD = ${eye.ipd || ''} mm`, col5X, y);
-  y += 50; // Space for various checkboxes/notes from the image, simplified here
+  y += 40; 
   
   // Signature
   doc.line(col5X - 20, y, col5X + 30, y);

@@ -3,6 +3,18 @@ import { useClinic } from '../context/ClinicContext';
 import { generatePrescriptionPDF, generateEyePrescriptionPDF } from '../services/pdfService';
 import { Appointment, Medicine, EyePrescriptionDetails, EyeMeasurement, EyeAddition } from '../types';
 import { Clock, CheckCircle, FileText, Plus, Trash2, Printer, History, Eye } from 'lucide-react';
+import { RichTextEditor } from '../components/RichTextEditor';
+
+// Data for suggestions and dropdowns
+const OPHTHALMIC_SUGGESTIONS = [
+  'KRYPTOK', 'D-BIFOCAL', 'PHOTOGRAY', 'ARC',
+  'HIGH INDEX', 'CONSTANT USE', 'SEPARATE PAIRS',
+  'CATARACT SURGERY', 'GLASS', 'WHITE', 'C,R'
+];
+const NEXT_VISIT_OPTIONS = [
+  '1 Month', '2 Months', '3 Months', '6 Months', '12 Months', 'As needed'
+];
+
 
 export const DoctorView = () => {
   const { appointments, prescriptions, createPrescription, currentUser } = useClinic();
@@ -161,13 +173,13 @@ export const DoctorView = () => {
 
                 <div className="space-y-6 flex-1 overflow-y-auto pr-2 -mr-2"> {/* Added overflow for long forms */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Diagnosis / Impression</label>
-                    <textarea 
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white text-gray-900"
-                      rows={2}
-                      value={diagnosis}
-                      onChange={(e) => setDiagnosis(e.target.value)}
+                    <RichTextEditor
+                      label="Diagnosis / Impression"
                       placeholder="e.g. Myopia, Conjunctivitis..."
+                      value={diagnosis}
+                      onChange={setDiagnosis}
+                      rows={2}
+                      borderColor="border-gray-300"
                     />
                   </div>
 
@@ -231,21 +243,31 @@ export const DoctorView = () => {
 
                     {/* Next Visit & IPD */}
                     <div className="flex gap-4 mb-4">
-                        <input type="text" placeholder="Next Visit (e.g., 1 Month)" className="flex-1 p-2 border rounded text-sm bg-white text-gray-900"
-                            value={eyePrescription.next_visit} onChange={e => updateEyeGeneral('next_visit', e.target.value)} />
+                        <select
+                          className="flex-1 p-2 border rounded text-sm bg-white text-gray-900 border-gray-300"
+                          value={eyePrescription.next_visit}
+                          onChange={e => updateEyeGeneral('next_visit', e.target.value)}
+                        >
+                          <option value="">-- Select Next Visit --</option>
+                          {NEXT_VISIT_OPTIONS.map(opt => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+
                         <input type="text" placeholder="IPD (e.g., 60mm)" className="flex-1 p-2 border rounded text-sm bg-white text-gray-900"
                             value={eyePrescription.ipd} onChange={e => updateEyeGeneral('ipd', e.target.value)} />
                     </div>
 
                     {/* Eye Specific Advice */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Eye Specific Advice / Notes</label>
-                      <textarea 
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white text-gray-900"
-                        rows={2}
-                        value={eyePrescription.advice}
-                        onChange={(e) => updateEyeGeneral('advice', e.target.value)}
+                      <RichTextEditor
+                        label="Eye Specific Advice / Notes"
                         placeholder="e.g. Constant use, Cataract Surgery..."
+                        value={eyePrescription.advice || ''}
+                        onChange={(val) => updateEyeGeneral('advice', val)}
+                        rows={2}
+                        borderColor="border-brand-500"
+                        suggestions={OPHTHALMIC_SUGGESTIONS}
                       />
                     </div>
                   </div>
@@ -299,13 +321,13 @@ export const DoctorView = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Additional Instructions (General)</label>
-                    <textarea 
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white text-gray-900"
-                      rows={2}
-                      value={instructions}
-                      onChange={(e) => setInstructions(e.target.value)}
+                    <RichTextEditor
+                      label="Additional Instructions (General)"
                       placeholder="e.g. Return for checkup in 2 weeks..."
+                      value={instructions}
+                      onChange={setInstructions}
+                      rows={2}
+                      borderColor="border-gray-300"
                     />
                   </div>
                 </div>

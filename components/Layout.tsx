@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 interface LayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   activeView: string;
   onNavigate: (view: string) => void;
 }
